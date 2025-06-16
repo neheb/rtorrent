@@ -149,8 +149,8 @@ ListFocus<Base>::remove(const value_type& v) {
 template <typename Base>
 void
 ListFocus<Base>::emit_changed() {
-  for (signal_void::iterator itr = m_signal_changed.begin(), last = m_signal_changed.end(); itr != last; itr++)
-    (*itr)();
+  for (auto& itr : m_signal_changed)
+    itr();
 }
 
 }
