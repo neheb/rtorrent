@@ -1,0 +1,4 @@
+option('execinfo', type: 'feature')
+option('lua', type: 'feature')
+option('tests', type: 'feature')
+option('xmlrpc-c', type: 'feature')

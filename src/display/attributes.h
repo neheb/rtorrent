@@ -4,14 +4,14 @@
 #include <string>
 #include <vector>
 
-#if __has_include(<ncursesw/curses.h>)
-#include <ncursesw/curses.h>
-#elif __has_include(<ncursesw.h>)
+#if __has_include(<ncursesw.h>)
 #include <ncursesw.h>
-#elif __has_include(<ncurses/curses.h>)
-#include <ncurses/curses.h>
 #elif __has_include(<ncurses.h>)
 #include <ncurses.h>
+#elif __has_include(<ncursesw/curses.h>)
+#include <ncursesw/curses.h>
+#elif __has_include(<ncurses/curses.h>)
+#include <ncurses/curses.h>
 #elif __has_include(<curses.h>)
 #include <curses.h>
 #else
