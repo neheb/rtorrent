@@ -579,12 +579,12 @@ d_list_remove(core::Download* download, const torrent::Object& rawArgs, const ch
   return torrent::Object();
 }
 
-#define CMD2_ON_INFO(func) std::bind(&torrent::DownloadInfo::func, std::bind(&core::Download::info, std::placeholders::_1))
-#define CMD2_ON_DATA(func) std::bind(&torrent::download_data::func, std::bind(&core::Download::data, std::placeholders::_1))
-#define CMD2_ON_DL(func) std::bind(&torrent::Download::func, std::bind(&core::Download::download, std::placeholders::_1))
-#define CMD2_ON_FL(func) std::bind(&torrent::FileList::func, std::bind(&core::Download::file_list, std::placeholders::_1))
+#define CMD2_ON_INFO(func) [](auto d, const auto&) { return d->info()->func(); }
+#define CMD2_ON_DATA(func) [](auto d, const auto&) { return d->data()->func(); }
+#define CMD2_ON_DL(func)   [](auto d, const auto&) { return d->download()->func(); }
+#define CMD2_ON_FL(func)   [](auto d, const auto&) { return d->file_list()->func(); }
 
-#define CMD2_BIND_DL std::bind(&core::Download::download, std::placeholders::_1)
+#define CMD2_BIND_DL [](auto d, const auto&) { return d->download(); }
 #define CMD2_BIND_CL std::bind(&core::Download::connection_list, std::placeholders::_1)
 #define CMD2_BIND_FL std::bind(&core::Download::file_list, std::placeholders::_1)
 #define CMD2_BIND_PL std::bind(&core::Download::c_peer_list, std::placeholders::_1)
@@ -632,10 +632,10 @@ void               cg_d_group_set(core::Download* download, const torrent::Objec
 
 void
 initialize_command_download() {
-  CMD2_DL("d.hash",          std::bind(&rak::transform_hex_str<torrent::HashString>, CMD2_ON_INFO(hash)));
-  CMD2_DL("d.local_id",      std::bind(&rak::transform_hex_str<torrent::HashString>, CMD2_ON_INFO(local_id)));
-  CMD2_DL("d.local_id_html", std::bind(&rak::copy_escape_html_str<torrent::HashString>, CMD2_ON_INFO(local_id)));
-  CMD2_DL("d.bitfield",      std::bind(&retrieve_d_bitfield, std::placeholders::_1));
+  CMD2_DL("d.hash", [](auto d, const auto&) { return rak::transform_hex_str<torrent::HashString>(d->info()->hash()); });
+  CMD2_DL("d.local_id", [](auto d, const auto&) { return rak::transform_hex_str<torrent::HashString>(d->info()->local_id()); });
+  CMD2_DL("d.local_id_html", [](auto d, const auto&) { return rak::copy_escape_html_str<torrent::HashString>(d->info()->local_id()); })
+  CMD2_DL("d.bitfield", [](auto d, const auto&) { return retrieve_d_bitfield(d); });
   CMD2_DL("d.base_path",     std::bind(&retrieve_d_base_path, std::placeholders::_1));
   CMD2_DL("d.base_filename", std::bind(&retrieve_d_base_filename, std::placeholders::_1));
 
@@ -647,15 +647,15 @@ initialize_command_download() {
   // Network related:
   //
 
-  CMD2_DL         ("d.up.rate",       std::bind(&torrent::Rate::rate,  CMD2_ON_INFO(up_rate)));
-  CMD2_DL         ("d.up.total",      std::bind(&torrent::Rate::total, CMD2_ON_INFO(up_rate)));
-  CMD2_DL         ("d.down.rate",     std::bind(&torrent::Rate::rate,  CMD2_ON_INFO(down_rate)));
-  CMD2_DL         ("d.down.total",    std::bind(&torrent::Rate::total, CMD2_ON_INFO(down_rate)));
-  CMD2_DL         ("d.skip.rate",     std::bind(&torrent::Rate::rate,  CMD2_ON_INFO(skip_rate)));
-  CMD2_DL         ("d.skip.total",    std::bind(&torrent::Rate::total, CMD2_ON_INFO(skip_rate)));
+  CMD2_DL("d.up.rate", [](auto d, const auto&) { return d->info()->up_rate()->rate(); });
+  CMD2_DL("d.up.total", [](auto d, const auto&) { return d->info()->up_rate()->total(); });
+  CMD2_DL("d.down.rate", [](auto d, const auto&) { return d->info()->down_rate()->rate(); });
+  CMD2_DL("d.down.total", [](auto d, const auto&) { return d->info()->down_rate()->total(); });
+  CMD2_DL("d.skip.rate", [](auto d, const auto&) { return d->info()->skip_rate()->rate(); });
+  CMD2_DL("d.skip.total", [](auto d, const auto&) { return d->info()->skip_rate()->total(); });
 
   CMD2_DL         ("d.peer_exchange",     CMD2_ON_INFO(is_pex_enabled));
-  CMD2_DL_VALUE_V ("d.peer_exchange.set", std::bind(&torrent::Download::set_pex_enabled, CMD2_BIND_DL, std::placeholders::_2));
+  CMD2_DL_VALUE_V("d.peer_exchange.set", [](auto d, const auto& s) { return d->download()->set_pex_enabled(s); });
 
   CMD2_DL_LIST    ("d.create_link", std::bind(&apply_d_change_link, std::placeholders::_1, std::placeholders::_2, 0));
   CMD2_DL_LIST    ("d.delete_link", std::bind(&apply_d_change_link, std::placeholders::_1, std::placeholders::_2, 1));
@@ -673,8 +673,8 @@ initialize_command_download() {
 
   CMD2_DL         ("d.is_open",               CMD2_ON_INFO(is_open));
   CMD2_DL         ("d.is_active",             CMD2_ON_INFO(is_active));
-  CMD2_DL         ("d.is_hash_checked",       std::bind(&torrent::Download::is_hash_checked, CMD2_BIND_DL));
-  CMD2_DL         ("d.is_hash_checking",      std::bind(&torrent::Download::is_hash_checking, CMD2_BIND_DL));
+  CMD2_DL("d.is_hash_checked", [](auto d, const auto&) { return d->download()->is_hash_checked(); });
+  CMD2_DL("d.is_hash_checking", [](auto d, const auto&) { return d->download()->is_hash_checking(); });
   CMD2_DL         ("d.is_multi_file",         std::bind(&torrent::FileList::is_multi_file, CMD2_BIND_FL));
   CMD2_DL         ("d.is_private",            CMD2_ON_INFO(is_private));
   CMD2_DL         ("d.is_pex_active",         CMD2_ON_INFO(is_pex_active));
@@ -751,15 +751,15 @@ initialize_command_download() {
   CMD2_DL_TIMESTAMP("d.timestamp.started",      "rtorrent", "timestamp.started");
   CMD2_DL_TIMESTAMP("d.timestamp.finished",     "rtorrent", "timestamp.finished");
 
-  CMD2_DL       ("d.connection_current",     std::bind(&torrent::option_as_string, torrent::OPTION_CONNECTION_TYPE, CMD2_ON_DL(connection_type)));
+  CMD2_DL("d.connection_current", [](auto d, const auto&) { return torrent::option_as_string(torrent::OPTION_CONNECTION_TYPE, d->download()->connection_type()); });
   CMD2_DL_STRING("d.connection_current.set", std::bind(&apply_d_connection_type, std::placeholders::_1, std::placeholders::_2));
 
   CMD2_DL_VAR_STRING("d.connection_leech",      "rtorrent", "connection_leech");
   CMD2_DL_VAR_STRING("d.connection_seed",       "rtorrent", "connection_seed");
 
-  CMD2_DL       ("d.up.choke_heuristics",       std::bind(&torrent::option_as_string, torrent::OPTION_CHOKE_HEURISTICS, CMD2_ON_DL(upload_choke_heuristic)));
+  CMD2_DL("d.up.choke_heuristics", [](auto d, const auto&) { return torrent::option_as_string(torrent::OPTION_CHOKE_HEURISTICS, d->download()->upload_choke_heuristic()); });
   CMD2_DL_STRING("d.up.choke_heuristics.set",   std::bind(&apply_d_choke_heuristics, std::placeholders::_1, std::placeholders::_2, false));
-  CMD2_DL       ("d.down.choke_heuristics",     std::bind(&torrent::option_as_string, torrent::OPTION_CHOKE_HEURISTICS, CMD2_ON_DL(download_choke_heuristic)));
+  CMD2_DL("d.down.choke_heuristics", [](auto d, const auto&) { return torrent::option_as_string(torrent::OPTION_CHOKE_HEURISTICS, d->download()->download_choke_heuristic()); });
   CMD2_DL_STRING("d.down.choke_heuristics.set", std::bind(&apply_d_choke_heuristics, std::placeholders::_1, std::placeholders::_2, true));
 
   CMD2_DL_VAR_STRING("d.up.choke_heuristics.leech", "rtorrent", "choke_heuristics.up.leech");
@@ -788,14 +788,14 @@ initialize_command_download() {
   CMD2_DL_VALUE_V ("d.peers_min.set",       std::bind(&torrent::ConnectionList::set_min_size, CMD2_BIND_CL, std::placeholders::_2));
   CMD2_DL         ("d.peers_max",           std::bind(&torrent::ConnectionList::max_size, CMD2_BIND_CL));
   CMD2_DL_VALUE_V ("d.peers_max.set",       std::bind(&torrent::ConnectionList::set_max_size, CMD2_BIND_CL, std::placeholders::_2));
-  CMD2_DL         ("d.uploads_max",         std::bind(&torrent::Download::uploads_max, CMD2_BIND_DL));
-  CMD2_DL_VALUE_V ("d.uploads_max.set",     std::bind(&torrent::Download::set_uploads_max, CMD2_BIND_DL, std::placeholders::_2));
-  CMD2_DL         ("d.uploads_min",         std::bind(&torrent::Download::uploads_min, CMD2_BIND_DL));
-  CMD2_DL_VALUE_V ("d.uploads_min.set",     std::bind(&torrent::Download::set_uploads_min, CMD2_BIND_DL, std::placeholders::_2));
-  CMD2_DL         ("d.downloads_max",         std::bind(&torrent::Download::downloads_max, CMD2_BIND_DL));
-  CMD2_DL_VALUE_V ("d.downloads_max.set",     std::bind(&torrent::Download::set_downloads_max, CMD2_BIND_DL, std::placeholders::_2));
-  CMD2_DL         ("d.downloads_min",         std::bind(&torrent::Download::downloads_min, CMD2_BIND_DL));
-  CMD2_DL_VALUE_V ("d.downloads_min.set",     std::bind(&torrent::Download::set_downloads_min, CMD2_BIND_DL, std::placeholders::_2));
+  CMD2_DL("d.uploads_max", [](auto d, const auto&) { return d->download()->uploads_max(); });
+  CMD2_DL_VALUE_V("d.uploads_max.set", [](auto d, const auto& s) { return d->download()->set_uploads_max(s); });
+  CMD2_DL("d.uploads_min", [](auto d, const auto&) { return d->download()->uploads_min(); });
+  CMD2_DL_VALUE_V("d.uploads_min.set", [](auto d, const auto& s) { return d->download()->set_uploads_min(s); });
+  CMD2_DL("d.downloads_max", [](auto d, const auto&) { return d->download()->downloads_max(); });
+  CMD2_DL_VALUE_V("d.downloads_max.set", [](auto d, const auto& s) { return d->download()->set_downloads_max(s); });
+  CMD2_DL("d.downloads_min", [](auto d, const auto&) { return d->download()->downloads_min(); });
+  CMD2_DL_VALUE_V("d.downloads_min.set", [](auto d, const auto& s) { return d->download()->set_downloads_min(s); });
   CMD2_DL         ("d.peers_connected",     std::bind(&torrent::ConnectionList::size, CMD2_BIND_CL));
   CMD2_DL         ("d.peers_not_connected", std::bind(&torrent::PeerList::available_list_size, CMD2_BIND_PL));
 
@@ -832,8 +832,8 @@ initialize_command_download() {
   CMD2_DL         ("d.wanted_chunks",    CMD2_ON_DATA(wanted_chunks));
 
   // Do not exposre d.tracker_announce.force to regular users.
-  CMD2_DL_V       ("d.tracker_announce",       std::bind(&torrent::Download::manual_request, CMD2_BIND_DL, false));
-  CMD2_DL_V       ("d.tracker_announce.force", std::bind(&torrent::Download::manual_request, CMD2_BIND_DL, true));
+  CMD2_DL_V("d.tracker_announce", [](auto d, const auto&) { return d->download()->manual_request(false); });
+  CMD2_DL_V("d.tracker_announce.force", [](auto d, const auto&) { return d->download()->manual_request(true); });
 
   CMD2_DL         ("d.tracker_numwant",      std::bind(&torrent::tracker::TrackerControllerWrapper::numwant, CMD2_BIND_TC));
   CMD2_DL_VALUE_V ("d.tracker_numwant.set",  std::bind(&torrent::tracker::TrackerControllerWrapper::set_numwant, CMD2_BIND_TC, std::placeholders::_2));

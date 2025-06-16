@@ -92,9 +92,6 @@ private:
 
   PList               m_list;
   PList::iterator     m_listItr;
-
-  signal_connection   m_peer_connected;
-  signal_connection   m_peer_disconnected;
 };
 
 }
