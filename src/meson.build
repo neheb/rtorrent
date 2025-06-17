@@ -101,7 +101,7 @@ rtorrent_lib = static_library(
   'rtorrent',
   rtorrent_lib_files,
   include_directories: incdirs,
-  dependencies: [libtorrent_dep, execinfo_dep, lua_dep, ncurses_dep, socket_dep, xmlrpc_dep],
+  dependencies: [libtorrent_dep, execinfo_dep, json_dep, lua_dep, ncurses_dep, socket_dep, xmlrpc_dep],
 )
 
 rtorrent_lib_dep = declare_dependency(

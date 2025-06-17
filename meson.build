@@ -58,6 +58,7 @@ endif
 
 libtorrent_dep = dependency('libtorrent')
 ncurses_dep = dependency('curses')
+json_dep = dependency('nlohmann_json')
 
 subdir('src')
 subdir('test')
