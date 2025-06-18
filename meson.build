@@ -33,7 +33,7 @@ else
   endif
 endif
 
-lua_dep = dependency('lua-5.4', 'lua-5.3', 'lua', required: get_option('lua'))
+lua_dep = dependency('lua-5.4', 'lua-5.3', 'lua-5.1', 'lua', required: get_option('lua'))
 if lua_dep.found()
   cdata.set('HAVE_LUA', 1)
 endif
