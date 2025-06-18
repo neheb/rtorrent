@@ -48,6 +48,9 @@ LuaEngine::set_package_preload() {
 
 void
 check_lua_status(lua_State* l_state, int status) {
+#ifndef LUA_OK
+#define LUA_OK 0
+#endif
   if (status != LUA_OK) {
     throw torrent::input_error(lua_tostring(l_state, -1));
   }
