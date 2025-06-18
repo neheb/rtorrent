@@ -194,8 +194,8 @@ cmd_file_append(const torrent::Object::list_type& args) {
 
 void
 initialize_command_local() {
-  core::DownloadList*    dList = control->core()->download_list();
-  core::DownloadStore*   dStore = control->core()->download_store();
+  const auto&            dList = control->core()->download_list();
+  const auto&            dStore = control->core()->download_store();
   torrent::ChunkManager* chunkManager = torrent::chunk_manager();
   torrent::FileManager*  fileManager = torrent::file_manager();
 
@@ -212,8 +212,8 @@ initialize_command_local() {
   CMD2_VAR_STRING  ("system.file.split_suffix",     ".part");
 
   CMD2_ANY         ("system.file_status_cache.size",   std::bind(&utils::FileStatusCache::size,
-                                                                 (utils::FileStatusCache::base_type*)control->core()->file_status_cache()));
-  CMD2_ANY_V       ("system.file_status_cache.prune",  std::bind(&utils::FileStatusCache::prune, control->core()->file_status_cache()));
+                                                                 (utils::FileStatusCache::base_type*)control->core()->file_status_cache().get()));
+  CMD2_ANY_V       ("system.file_status_cache.prune",  std::bind(&utils::FileStatusCache::prune, std::ref(control->core()->file_status_cache())));
 
   CMD2_VAR_BOOL    ("file.prioritize_toc",          0);
   CMD2_VAR_LIST    ("file.prioritize_toc.first");
@@ -287,10 +287,10 @@ initialize_command_local() {
   CMD2_VAR_BOOL    ("session.use_lock",        true);
   CMD2_VAR_BOOL    ("session.on_completion",   true);
 
-  CMD2_ANY         ("session.path",            std::bind(&core::DownloadStore::path, dStore));
-  CMD2_ANY_STRING_V("session.path.set",        std::bind(&core::DownloadStore::set_path, dStore, std::placeholders::_2));
+  CMD2_ANY         ("session.path",            std::bind(&core::DownloadStore::path, std::ref(dStore)));
+  CMD2_ANY_STRING_V("session.path.set",        std::bind(&core::DownloadStore::set_path, std::ref(dStore), std::placeholders::_2));
 
-  CMD2_ANY_V       ("session.save",            std::bind(&core::DownloadList::session_save, dList));
+  CMD2_ANY_V       ("session.save",            std::bind(&core::DownloadList::session_save, std::ref(dList)));
 
 #ifdef HAVE_LUA
   rpc::LuaEngine* lua_engine = control->lua_engine();

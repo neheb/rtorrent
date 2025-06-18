@@ -682,16 +682,16 @@ initialize_command_download() {
   CMD2_DL         ("d.is_not_partially_done", CMD2_ON_DATA(is_not_partially_done));
   CMD2_DL         ("d.is_meta",               CMD2_ON_INFO(is_meta_download));
 
-  CMD2_DL_V       ("d.resume",     std::bind(&core::DownloadList::resume_default, control->core()->download_list(), std::placeholders::_1));
-  CMD2_DL_V       ("d.pause",      std::bind(&core::DownloadList::pause_default, control->core()->download_list(), std::placeholders::_1));
-  CMD2_DL_V       ("d.open",       std::bind(&core::DownloadList::open_throw, control->core()->download_list(), std::placeholders::_1));
-  CMD2_DL_V       ("d.close",      std::bind(&core::DownloadList::close_throw, control->core()->download_list(), std::placeholders::_1));
-  CMD2_DL_V       ("d.close.directly", std::bind(&core::DownloadList::close_directly, control->core()->download_list(), std::placeholders::_1));
-  CMD2_DL_V       ("d.erase",      std::bind(&core::DownloadList::erase_ptr, control->core()->download_list(), std::placeholders::_1));
-  CMD2_DL_V       ("d.check_hash", std::bind(&core::DownloadList::check_hash, control->core()->download_list(), std::placeholders::_1));
+  CMD2_DL_V       ("d.resume",     std::bind(&core::DownloadList::resume_default, std::ref(control->core()->download_list()), std::placeholders::_1));
+  CMD2_DL_V       ("d.pause",      std::bind(&core::DownloadList::pause_default, std::ref(control->core()->download_list()), std::placeholders::_1));
+  CMD2_DL_V       ("d.open",       std::bind(&core::DownloadList::open_throw, std::ref(control->core()->download_list()), std::placeholders::_1));
+  CMD2_DL_V       ("d.close",      std::bind(&core::DownloadList::close_throw, std::ref(control->core()->download_list()), std::placeholders::_1));
+  CMD2_DL_V       ("d.close.directly", std::bind(&core::DownloadList::close_directly, std::ref(control->core()->download_list()), std::placeholders::_1));
+  CMD2_DL_V       ("d.erase",      std::bind(&core::DownloadList::erase_ptr, std::ref(control->core()->download_list()), std::placeholders::_1));
+  CMD2_DL_V       ("d.check_hash", std::bind(&core::DownloadList::check_hash, std::ref(control->core()->download_list()), std::placeholders::_1));
 
-  CMD2_DL         ("d.save_resume",       std::bind(&core::DownloadStore::save_resume, control->core()->download_store(), std::placeholders::_1));
-  CMD2_DL         ("d.save_full_session", std::bind(&core::DownloadStore::save_full, control->core()->download_store(), std::placeholders::_1));
+  CMD2_DL         ("d.save_resume",       std::bind(&core::DownloadStore::save_resume, std::ref(control->core()->download_store()), std::placeholders::_1));
+  CMD2_DL         ("d.save_full_session", std::bind(&core::DownloadStore::save_full, std::ref(control->core()->download_store()), std::placeholders::_1));
 
   CMD2_DL_V       ("d.update_priorities", CMD2_ON_DL(update_priorities));
 
